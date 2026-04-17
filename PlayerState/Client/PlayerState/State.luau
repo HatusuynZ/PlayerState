@@ -8,33 +8,10 @@ local Module = {} :: {
 }
 
 export type DefaultPlayerState = {
-	CurrentTrack: { [string]: any },
-	RateLimit: number,
-	AntiCheat: { [string]: any },
-	CurrentEmotes: { [string]: any },
-	AvatarOriginItems: { [string]: any },
-	LastEmmit: number,
-	BaseHumanoidDescription: HumanoidDescription | boolean,
-	Room: number,
-	DualEmoteName: string,
-	ToyInUse: string,
-	DualEmoted: Player?,
-	AvatarOriginFolder: Folder?,
 }
 
 local DEFAULT_PLAYER_STATE: DefaultPlayerState = {
-	CurrentTrack = {},
-	RateLimit = 0,
-	AntiCheat = {},
-	CurrentEmotes = {},
-	AvatarOriginItems = {},
-	LastEmmit = time(),
-	BaseHumanoidDescription = false,
-	Room = 0,
-	ToyInUse = "",
-	DualEmoteName = "",
-	DualEmoted = nil,
-	AvatarOriginFolder = nil,
+       ---- general ----
 }
 
 
