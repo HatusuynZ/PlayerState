@@ -368,7 +368,7 @@ function Module:Start()
 	self.Signal.ReplicateEvent.OnClientEvent:Connect(onReplicateState)
 	self.Signal.ReplicateTableEvent.OnClientEvent:Connect(onReplicateStateWithTable)
 
-    ------------//
+    --//
 
     -- initialize
 	self:SetState(Players.LocalPlayer)
