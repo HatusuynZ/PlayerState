@@ -22,7 +22,7 @@ local PlayerState = require(ReplicatedStorage.Services.PlayerState)
 
 All state variables are defined in `State.lua`. **This is where you add your own fields.**
 
-Edit the `DefaultPlayerState` type and the `DEFAULT_PLAYER_STATE` table to match your game's data:
+Edit the "State", `DefaultPlayerState` type and the `DEFAULT_PLAYER_STATE` table to match your game's data:
 
 ```lua
 -- State.lua
@@ -187,13 +187,6 @@ Limpa todos os objetos registrados, mas mantém o Soap utilizável.
 ```lua
 soap:Cleanup()
 ```
-
-### `soap:Destroy()`
-Limpa tudo e descarta o Soap por completo. Chamado automaticamente quando o player sai.
-
-> Você não precisa chamar `Destroy` manualmente — o módulo já faz isso no `PlayerRemoving`.
-
----
 
 ## Notes
 
