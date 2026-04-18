@@ -355,6 +355,8 @@ end
 -- Here we initialize the main logic by connecting events
 -- and synchronizing states.
 function Module:Start()
+
+    -- Connect
 	Players.PlayerAdded:Connect(function(player: Player)
 		self:SetState(player)
 	end)
@@ -363,11 +365,12 @@ function Module:Start()
 		self:CleanStates(player)
 	end)
 
-	local SignalObject = self.Signal
+	self.Signal.ReplicateEvent.OnClientEvent:Connect(onReplicateState)
+	self.Signal.ReplicateTableEvent.OnClientEvent:Connect(onReplicateStateWithTable)
 
-	SignalObject.ReplicateEvent.OnClientEvent:Connect(onReplicateState)
-	SignalObject.ReplicateTableEvent.OnClientEvent:Connect(onReplicateStateWithTable)
+    ------------//
 
+    -- initialize
 	self:SetState(Players.LocalPlayer)
 
 	task.spawn(function()
