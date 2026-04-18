@@ -1,7 +1,6 @@
 -- Server/Signal.lua
 --!strict
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local PlayerStateShared = ReplicatedStorage.Services.PlayerState
 
 local Module = {}
 local created = false
@@ -19,19 +18,19 @@ function Module.New(): PlayerStateSignals
 
 	local ReplicateEvent = Instance.new("RemoteEvent")
 	ReplicateEvent.Name = "ReplicateState"
-	ReplicateEvent.Parent = PlayerStateShared
+	ReplicateEvent.Parent = ReplicatedStorage
 
 	local ReplicateTableEvent = Instance.new("RemoteEvent")
 	ReplicateTableEvent.Name = "ReplicateStateWithTable"
-	ReplicateTableEvent.Parent = PlayerStateShared
+	ReplicateTableEvent.Parent = ReplicatedStorage
 
 	local StatesLoaded = Instance.new("RemoteFunction")
 	StatesLoaded.Name = "StatesLoaded"
-	StatesLoaded.Parent = PlayerStateShared
+	StatesLoaded.Parent = ReplicatedStorage
 
 	local OnStateCleanedSnapshot = Instance.new("BindableEvent")
 	OnStateCleanedSnapshot.Name = "OnStateCleanedSnapshot"
-	OnStateCleanedSnapshot.Parent = PlayerStateShared
+	OnStateCleanedSnapshot.Parent = ReplicatedStorage
 
 	return {
 		ReplicateEvent = ReplicateEvent,
