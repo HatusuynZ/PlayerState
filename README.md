@@ -10,11 +10,40 @@ Place the `PlayerState` folder inside `ReplicatedStorage`. Then require the appr
 
 ```lua
 -- Server (inside a Script in ServerScriptService)
-local PlayerState = require(ReplicatedStorage.Controllers.PlayerState)
+local PlayerState = require(ReplicatedStorage.Services.PlayerState.Server)
 
 -- Client (inside a LocalScript or ModuleScript)
-local PlayerState = require(ReplicatedStorage.Services.PlayerState)
+local PlayerState = require(ReplicatedStorage.Services.PlayerState.Client)
 ```
+
+---
+
+## Defining Player State
+
+All state variables are defined in `State.lua`. **This is where you add your own fields.**
+
+Edit the `DefaultPlayerState` type and the `DEFAULT_PLAYER_STATE` table to match your game's data:
+
+```lua
+-- State.lua
+export type DefaultPlayerState = {
+    Coins: number,
+    Level: number,
+    Inventory: { [string]: any },
+    IsReady: boolean,
+    -- Add your own fields here
+}
+
+local DEFAULT_PLAYER_STATE: DefaultPlayerState = {
+    Coins = 0,
+    Level = 1,
+    Inventory = {},
+    IsReady = false,
+    -- Initialize your own fields here
+}
+```
+
+> Every player receives a **deep copy** of `DEFAULT_PLAYER_STATE` on join, so tables are never shared between players.
 
 ---
 
@@ -45,11 +74,12 @@ local state, soap = PlayerState:GetState(player)
 ```
 
 ### `OnStateCleanedSnapshot`
-Fired just before a player's state is destroyed. Use this to save data to DataStore.
+Fired just before a player's state is destroyed. Receives a **deep copy** of the state, allowing you to safely observe the player's last values without risk of the data being wiped mid-read.
 
 ```lua
 PlayerState.OnStateCleanedSnapshot.Event:Connect(function(player, snapshot)
-    -- save snapshot.State to DataStore
+    print(snapshot.State.Coins)  -- safe to read, this is a clone
+    print(snapshot.State.Level)
 end)
 ```
 
@@ -87,7 +117,7 @@ conn:Disconnect(myCallback)
 
 ## Examples
 
-**Granting coins on purchase (Server)**
+**Updating a single value (Server)**
 ```lua
 local state = PlayerState:GetState(player)
 if state then
@@ -95,7 +125,15 @@ if state then
 end
 ```
 
-**Updating HUD reactively (Client)**
+**Updating multiple values at once (Server)**
+```lua
+PlayerState:ReplicateStateWithTable(player, {
+    Coins = 500,
+    Level = 10,
+})
+```
+
+**Updating the HUD reactively (Client)**
 ```lua
 local conn = PlayerState:GetStateChanged(game.Players.LocalPlayer, "Coins")
 conn:Connect(function(newCoins)
@@ -103,10 +141,11 @@ conn:Connect(function(newCoins)
 end)
 ```
 
-**Saving data on leave (Server)**
+**Observing values when a player leaves (Server)**
 ```lua
 PlayerState.OnStateCleanedSnapshot.Event:Connect(function(player, snapshot)
-    DataStore:SetAsync(player.UserId, snapshot.State)
+    -- snapshot.State is a cloned table — safe to read even after the state is destroyed
+    print(player.Name, "had", snapshot.State.Coins, "coins")
 end)
 ```
 
@@ -114,6 +153,7 @@ end)
 
 ## Notes
 
-- `GetState` and `GetReference` are async — they yield if the state isn't ready and return `nil` after a 3-second timeout.
+- `GetState` yields if the state isn't ready and returns `nil` after a 3-second timeout.
 - `ReplicateStateWithTable` is preferred over multiple `ReplicateState` calls for batch updates.
-- `OnStateCleanedSnapshot` receives a **deep copy** of the state, so it's safe to read after the player leaves.
+- `OnStateCleanedSnapshot` gives you a **cloned snapshot** — the original state is already being destroyed when this fires, so always read from `snapshot.State`.
+- To add new state fields, edit both the `DefaultPlayerState` type and the `DEFAULT_PLAYER_STATE` table in `State.lua`.
