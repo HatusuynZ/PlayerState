@@ -4,6 +4,10 @@ local Module = {}
 local Api = {}
 Api.__index = Api
 
+local function isSoap(t)
+	return typeof(t) == "table" and typeof(t.Cleanup) == "function"
+end
+
 local function isSafeTable(t)
 	return typeof(t) == "table" and getmetatable(t) == nil
 end
@@ -21,6 +25,8 @@ local function clean(t)
 			remove()
 		elseif valueType == "Tween" then
 			remove:Cancel()
+		elseif isSoap(remove) then 
+			remove:Destroy()
 		elseif isSafeTable(remove) then
 			clean(remove)
 		end
