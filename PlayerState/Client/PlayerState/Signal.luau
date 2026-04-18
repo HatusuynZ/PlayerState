@@ -1,6 +1,6 @@
 -- Client/Signal.lua
 --!strict
-local PlayerStateShared = script.Parent
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Module = {}
 
@@ -13,10 +13,10 @@ export type PlayerStateSignals = {
 
 function Module:GetSignal(): PlayerStateSignals
     return {
-        ReplicateEvent         = PlayerStateShared:WaitForChild("ReplicateState") :: RemoteEvent,
-        ReplicateTableEvent    = PlayerStateShared:WaitForChild("ReplicateStateWithTable") :: RemoteEvent,
-        StatesLoaded           = PlayerStateShared:WaitForChild("StatesLoaded") :: RemoteFunction,
-        OnStateCleanedSnapshot = PlayerStateShared:WaitForChild("OnStateCleanedSnapshot") :: BindableEvent,
+        ReplicateEvent = ReplicatedStorage:WaitForChild("ReplicateState") :: RemoteEvent,
+        ReplicateTableEvent = ReplicatedStorage:WaitForChild("ReplicateStateWithTable") :: RemoteEvent,
+        StatesLoaded = ReplicatedStorage:WaitForChild("StatesLoaded") :: RemoteFunction,
+        OnStateCleanedSnapshot = ReplicatedStorage:WaitForChild("OnStateCleanedSnapshot") :: BindableEvent,
     }
 end
 
