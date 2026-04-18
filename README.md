@@ -10,10 +10,10 @@ Place the `PlayerState` folder inside `ReplicatedStorage`. Then require the appr
 
 ```lua
 -- Server (inside a Script in ServerScriptService)
-local PlayerState = require(ReplicatedStorage.Services.PlayerState)
+local PlayerState = require(ReplicatedStorage.Services.PlayerState.Server)
 
 -- Client (inside a LocalScript or ModuleScript)
-local PlayerState = require(ReplicatedStorage.Services.PlayerState)
+local PlayerState = require(ReplicatedStorage.Services.PlayerState.Client)
 ```
 
 ---
@@ -148,6 +148,50 @@ PlayerState.OnStateCleanedSnapshot.Event:Connect(function(player, snapshot)
     print(player.Name, "had", snapshot.State.Coins, "coins")
 end)
 ```
+
+---
+
+## Soap
+
+`Soap` é um janitor embutido no módulo — cada player recebe um ao ter seu estado criado. Ele serve para registrar objetos que devem ser limpos automaticamente quando o player sair.
+
+Você o recebe pelo `GetState`:
+
+```lua
+local state, soap = PlayerState:GetState(player)
+```
+
+### `soap:Add(...)`
+Registra um ou mais objetos para serem limpos depois.
+
+```lua
+soap:Add(
+    workspace.Part,                           -- Instance        → :Destroy()
+    humanoid.Running:Connect(function() end), -- RBXScriptConnection → :Disconnect()
+    coroutine.running(),                      -- thread          → task.cancel()
+    tween,                                    -- Tween           → :Cancel()
+    function() print("cleaned") end           -- function        → chamada diretamente
+)
+```
+
+### `soap:Remove(...)`
+Remove um objeto do Soap sem limpá-lo.
+
+```lua
+soap:Remove(workspace.Part)
+```
+
+### `soap:Cleanup()`
+Limpa todos os objetos registrados, mas mantém o Soap utilizável.
+
+```lua
+soap:Cleanup()
+```
+
+### `soap:Destroy()`
+Limpa tudo e descarta o Soap por completo. Chamado automaticamente quando o player sai.
+
+> Você não precisa chamar `Destroy` manualmente — o módulo já faz isso no `PlayerRemoving`.
 
 ---
 
