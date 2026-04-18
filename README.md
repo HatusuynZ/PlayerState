@@ -10,10 +10,10 @@ Place the `PlayerState` folder inside `ReplicatedStorage`. Then require the appr
 
 ```lua
 -- Server (inside a Script in ServerScriptService)
-local PlayerState = require(ReplicatedStorage.Services.PlayerState.Server)
+local PlayerState = require(ReplicatedStorage.Services.PlayerState)
 
 -- Client (inside a LocalScript or ModuleScript)
-local PlayerState = require(ReplicatedStorage.Services.PlayerState.Client)
+local PlayerState = require(ReplicatedStorage.Services.PlayerState)
 ```
 
 ---
