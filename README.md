@@ -1,4 +1,4 @@
-# PlayerState
+ # PlayerState
 
 A lightweight, type-safe player state management module for Roblox. Handles state creation, reactive change detection, server → client replication, and automatic cleanup.
 
@@ -10,10 +10,10 @@ Place the `PlayerState` folder inside `ReplicatedStorage`. Then require the appr
 
 ```lua
 -- Server (inside a Script in ServerScriptService)
-local PlayerState = require(ServerScriptService.PlayerState)
+local PlayerState = require(ReplicatedStorage.Services.PlayerState.Server)
 
 -- Client (inside a LocalScript or ModuleScript)
-local PlayerState = require(ReplicatedStorage.PlayerState)
+local PlayerState = require(ReplicatedStorage.Services.PlayerState.Client)
 ```
 
 ---
@@ -22,7 +22,7 @@ local PlayerState = require(ReplicatedStorage.PlayerState)
 
 All state variables are defined in `State.lua`. **This is where you add your own fields.**
 
-Edit the "State", `DefaultPlayerState` type and the `DEFAULT_PLAYER_STATE` table to match your game's data:
+Edit the `DefaultPlayerState` type and the `DEFAULT_PLAYER_STATE` table to match your game's data:
 
 ```lua
 -- State.lua
@@ -115,37 +115,76 @@ CoinsChanged:Disconnect(myCallback)
 
 ---
 
-## Examples
+## Real Usage Example
 
-**Updating a single value (Server)**
-```lua
-local state = PlayerState:GetState(player)
-if state then
-    PlayerState:ReplicateState(player, "Coins", state.Coins + 100)
-end
-```
+This example simulates a coin collection system where the server grants coins every few seconds and the client updates the HUD reactively.
 
-**Updating multiple values at once (Server)**
+**Server**
 ```lua
-PlayerState:ReplicateStateWithTable(player, {
-    Coins = 500,
-    Level = 10,
-})
-```
+-- ServerScript
+local Players = game:GetService("Players")
+local PlayerState = require(ServerScriptService.PlayerState)
 
-**Updating the HUD reactively (Client)**
-```lua
-local CoinsChanged = PlayerState:GetStateChanged(game.Players.LocalPlayer, "Coins")
-CoinsChanged:Connect(function(newCoins)
-    CoinsLabel.Text = tostring(newCoins)
+Players.PlayerAdded:Connect(function(player)
+    local state, soap = PlayerState:GetState(player)
+    if not state then return end
+
+    -- Grant 10 coins every 5 seconds.
+    -- The loop thread is registered in Soap so it's cancelled automatically when the player leaves.
+    soap:Add(task.spawn(function()
+        while true do
+            task.wait(5)
+
+            local currentState = PlayerState:GetState(player)
+            if not currentState then break end
+
+            PlayerState:ReplicateStateWithTable(player, {
+                Coins = currentState.Coins + 10,
+                Level = math.floor(currentState.Coins / 100) + 1,
+            })
+        end
+    end))
+
+    -- Register a part created for this player so it's destroyed on leave.
+    local part = Instance.new("Part")
+    part.Parent = workspace
+    soap:Add(part)
+end)
+
+-- Observe the player's final state before cleanup.
+PlayerState.OnStateCleanedSnapshot.Event:Connect(function(player, snapshot)
+    print(player.Name, "left with", snapshot.State.Coins, "coins at level", snapshot.State.Level)
 end)
 ```
 
-**Observing values when a player leaves (Server)**
+**Client**
 ```lua
-PlayerState.OnStateCleanedSnapshot.Event:Connect(function(player, snapshot)
-    -- snapshot.State is a cloned table — safe to read even after the state is destroyed
-    print(player.Name, "had", snapshot.State.Coins, "coins")
+-- LocalScript
+local Players = game:GetService("Players")
+local PlayerState = require(ReplicatedStorage.PlayerState)
+
+local localPlayer = Players.LocalPlayer
+local PlayerGui = localPlayer.PlayerGui
+
+local CoinsLabel = PlayerGui.HUD.CoinsLabel
+local LevelLabel = PlayerGui.HUD.LevelLabel
+
+-- Set initial values once the state is ready.
+local state = PlayerState:GetState(localPlayer)
+if state then
+    CoinsLabel.Text = tostring(state.Coins)
+    LevelLabel.Text = "Level " .. state.Level
+end
+
+-- React to every update pushed by the server.
+local CoinsChanged = PlayerState:GetStateChanged(localPlayer, "Coins")
+CoinsChanged:Connect(function(newCoins)
+    CoinsLabel.Text = tostring(newCoins)
+end)
+
+local LevelChanged = PlayerState:GetStateChanged(localPlayer, "Level")
+LevelChanged:Connect(function(newLevel)
+    LevelLabel.Text = "Level " .. newLevel
 end)
 ```
 
@@ -187,6 +226,13 @@ Limpa todos os objetos registrados, mas mantém o Soap utilizável.
 ```lua
 soap:Cleanup()
 ```
+
+### `soap:Destroy()`
+Limpa tudo e descarta o Soap por completo. Chamado automaticamente quando o player sai.
+
+> Você não precisa chamar `Destroy` manualmente — o módulo já faz isso no `PlayerRemoving`.
+
+---
 
 ## Notes
 
