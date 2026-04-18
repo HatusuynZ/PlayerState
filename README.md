@@ -10,10 +10,10 @@ Place the `PlayerState` folder inside `ReplicatedStorage`. Then require the appr
 
 ```lua
 -- Server (inside a Script in ServerScriptService)
-local PlayerState = require(ReplicatedStorage.Services.PlayerState.Server)
+local PlayerState = require(ReplicatedStorage.Services.PlayerState)
 
 -- Client (inside a LocalScript or ModuleScript)
-local PlayerState = require(ReplicatedStorage.Services.PlayerState.Client)
+local PlayerState = require(ReplicatedStorage.Services.PlayerState)
 ```
 
 ---
@@ -98,19 +98,19 @@ local state = PlayerState:GetState(game.Players.LocalPlayer)
 Listens for changes on a specific state key.
 
 ```lua
-local conn = PlayerState:GetStateChanged(player, "Coins")
+local CoinsChanged = PlayerState:GetStateChanged(player, "Coins")
 
-conn:Connect(function(newValue)
+CoinsChanged:Connect(function(newValue)
     print("Coins:", newValue)
 end)
 
 -- Fires only once
-conn:Once(function(newValue)
+CoinsChanged:Once(function(newValue)
     print("First change:", newValue)
 end)
 
 -- Stop listening
-conn:Disconnect(myCallback)
+CoinsChanged:Disconnect(myCallback)
 ```
 
 ---
@@ -135,8 +135,8 @@ PlayerState:ReplicateStateWithTable(player, {
 
 **Updating the HUD reactively (Client)**
 ```lua
-local conn = PlayerState:GetStateChanged(game.Players.LocalPlayer, "Coins")
-conn:Connect(function(newCoins)
+local CoinsChanged = PlayerState:GetStateChanged(game.Players.LocalPlayer, "Coins")
+CoinsChanged:Connect(function(newCoins)
     CoinsLabel.Text = tostring(newCoins)
 end)
 ```
